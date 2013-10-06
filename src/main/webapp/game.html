@@ -1,0 +1,46 @@
+<div id="game">
+    <div style="float: right;background-color: lightblue;padding: 20px">
+        <h1>Конфигурация</h1>
+        Время: <strong data-bind="text: user.time"></strong>
+        <br>
+        Выходной день: <strong data-bind="text: user.restDay"></strong>
+        <br>
+        Сделано выборов: <strong data-bind="text: user.choicesCounter"></strong>
+        <br>
+        <table data-bind="source: user.levels" data-template="template">
+            <thead>
+            <th>Уровень</th>
+            <th>Значение</th>
+            </thead>
+        </table>
+        <button data-bind="click: reset">Обнулить</button>
+    </div>
+
+    <div style="background-color: lightcyan; padding: 20px">
+        <h1>Ситуация</h1>
+        Категория: <strong data-bind="text: situation.category.name"></strong>
+        активна с <span data-bind="text: situation.category.fromTime"></span>
+        по <span data-bind="text: situation.category.toTime"></span>,
+        выходной <span data-bind="text: situation.category.restDay"></span>
+        <br>Ситуация № <span data-bind="text: situation.id"></span>
+        <a data-bind="attr: {href: editLink}" target="_blank">редактировать</a>
+        <br>
+        <h3 data-bind="text: situation.text"></h3>
+        <table data-bind="source: situation.choices" data-template="choice-template"></table>
+    </div>
+
+
+
+    <script type="text/kendo-x-tmpl" id="choice-template">
+        <tr onclick="game.choose(#=data.id#)" style="cursor: pointer; border-top: solid grey 2px">
+            <td><input type="radio"/><td>
+            <td>#=data.text#<br><i style="color: grey">#=data.resume#</i><td>
+        </tr>
+    </script>
+    <script type="text/kendo-x-tmpl" id="template">
+        <tr>
+            <td>#=data.level.name#</td>
+            <td style="font-size: 20px">#=data.value#</td>
+        </tr>
+    </script>
+</div>

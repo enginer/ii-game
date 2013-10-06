@@ -1,0 +1,39 @@
+<div id="add">
+    <h1>Save Situation</h1>
+
+    Категория: <input data-role="dropdownlist"
+                      data-text-field="name" data-value-field="id"
+                      data-bind="source: categories, value: situation.category"/>
+    <br>
+    Ситуация:
+    <br>
+    <textarea rows="5" cols="100" data-bind="value: situation.text"></textarea>
+    <br>
+    <button class="grey" data-bind="click: addChoice">Добавить Выбор</button>
+    <br>
+    <table data-bind="source: situation.choices" data-template="row">
+        <thead>
+        <th>Уровень</th>
+        <th>Выбор</th>
+        <th>Резюме</th>
+        </thead>
+    </table>
+    <script id="row" type="text/x-kendo-template">
+        <tr>
+            <td>
+                <input data-role="dropdownlist"
+                       style="width: 60px"
+                       data-text-field="name"
+                       data-value-field="id"
+                       data-bind="source: levels, value: level"/>
+            </td>
+            <td>
+                <textarea rows="3" cols="40" data-bind="value: text"></textarea>
+            </td>
+            <td>
+                <textarea rows="3" cols="40" data-bind="value: resume"></textarea>
+            </td>
+        </tr>
+    </script>
+    <button data-bind="click: save">Сохранить Ситуацияю</button>
+</div>
