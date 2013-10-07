@@ -57,10 +57,10 @@ html,body{
 /* menu */
 
 /* content */
-#content{
+/*#content{
     width: 950px;
     margin: 50px auto;
-}
+}*/
  /* change password screen */
 #changePassDiv ul {
     list-style: none;
