@@ -1,7 +1,5 @@
-<div id="grid" style="width: 500px;float: left;position: fixed"></div>
+<div id="grid" class="situations-list"></div>
 <div id="situation" style="padding-left: 520px;">
-    <h1>Situation</h1>
-
     Категория: <input data-role="dropdownlist"
                       data-text-field="name" data-value-field="id"
                       data-bind="source: getCategories, value: category"/>
@@ -40,3 +38,13 @@
     </script>
     <button data-bind="click: save">Сохранить Ситуацияю</button>
 </div>
+<style type="text/css">
+    .situations-list {
+        width: 500px;
+        float: left;
+        position: fixed
+    }
+    .situations-list td {
+        cursor: pointer;
+    }
+</style>
