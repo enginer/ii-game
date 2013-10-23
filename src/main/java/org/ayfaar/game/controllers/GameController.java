@@ -7,9 +7,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.Time;
 import java.util.*;
@@ -25,12 +23,22 @@ public class GameController {
     private Random random = new Random();
     private static final int step = 250;
 
+    @RequestMapping("stages")
+    @ResponseBody
+    public Object stages() {
+        return getModelMap(commonDao.getAll(Goal.class));
+    }
+
     @RequestMapping("next")
     @ResponseBody
     public Object next() {
         ModelMap map = new ModelMap();
 
         User user = commonDao.get(User.class, 1);
+
+        if (user.getCurrentGoal() == null) {
+            return sendMessage("Не выбран этап");
+        }
 
         if (user.getTime() == null) {
             newDay(user);
@@ -48,38 +56,54 @@ public class GameController {
 
         sort(user.getLevels());
         commonDao.save(user);
-        map.put("user", getModelMap(user, "levels.level"));
+        map.put("user", getModelMap(user, "levels.level", "currentGoal"));
 
-        Situation situation = null;
-        Set<Choice> choices = null;
 
-        while (choices == null || choices.size() < 1) {
-            situation = nextSituationGenerator.getNext(user.getTime(), user.getRestDay());
+        UserLevel primaryLevel = getPrimaryLevel(user);
 
-            UserLevel maxUserLevel = null;
-            for (UserLevel userLevel : user.getLevels()) {
-                if (maxUserLevel == null || userLevel.getValue().compareTo(maxUserLevel.getValue()) == 1) {
-                    maxUserLevel = userLevel;
-                }
+
+        if (user.getChoicesCounter() > user.getCurrentGoal().getMaxChoices()) {
+            // Stage end
+            return sendMessage("Цель не достигнута по причине привышения максимально доступных выборов");
+        }
+
+        if (primaryLevel.getLevel().getId() >= user.getCurrentGoal().getFinishLevel().getId()) {
+            // Stage finished
+            return sendMessage("Цель достигнута!");
+        }
+
+        Situation situation = nextSituationGenerator.getNext(user.getTime(), user.getRestDay());
+        Choice[] choices = new Choice[3];
+
+
+        sort(situation.getChoices());
+        Iterator<Choice> iterator = situation.getChoices().iterator();
+
+        while (iterator.hasNext() && choices[2] == null) {
+            Choice choice = iterator.next();
+            Integer primaryUserLevelId = primaryLevel.getLevel().getId();
+            Integer choiceLevelId = choice.getLevel().getId();
+            if (choiceLevelId < primaryUserLevelId) {
+                choices[0] = choice;
             }
-            if (maxUserLevel == null) {
-                maxUserLevel = new UserLevel();
-                maxUserLevel.setLevel(new Level(10));
+            else if (choiceLevelId >= primaryUserLevelId && choices[1] == null) {
+                choices[1] = choice;
             }
-
-            choices = new HashSet<Choice>();
-
-            for (Choice choice : situation.getChoices()) {
-                Integer primaryUserLevelId = maxUserLevel.getLevel().getId();
-                Integer choiceLevelId = choice.getLevel().getId();
-                if (choiceLevelId.equals(primaryUserLevelId)
-                        || choiceLevelId.equals(primaryUserLevelId - 1)
-                        || choiceLevelId.equals(primaryUserLevelId + 1)
-                        ) {
-                    choices.add(choice);
-                }
+            else if (choiceLevelId > primaryUserLevelId) {
+                choices[2] = choice;
             }
         }
+
+        /*for (Choice choice : situation.getChoices()) {
+            Integer primaryUserLevelId = primaryLevel.getLevel().getId();
+            Integer choiceLevelId = choice.getLevel().getId();
+            if (choiceLevelId.equals(primaryUserLevelId)
+                    || choiceLevelId.equals(primaryUserLevelId - 1)
+                    || choiceLevelId.equals(primaryUserLevelId + 1)
+                    ) {
+                choices.add(choice);
+            }
+        }*/
 
         ModelMap situationModelMap = (ModelMap) getModelMap(situation, "category");
         situationModelMap.put("choices", getModelMap(choices, "level"));
@@ -90,6 +114,26 @@ public class GameController {
         return map;
     }
 
+    private UserLevel getPrimaryLevel(User user) {
+        UserLevel primaryLevel = null;
+        for (UserLevel userLevel : user.getLevels()) {
+            if (primaryLevel == null || userLevel.getValue().compareTo(primaryLevel.getValue()) == 1) {
+                primaryLevel = userLevel;
+            }
+        }
+        if (primaryLevel == null) {
+            primaryLevel = new UserLevel();
+            primaryLevel.setLevel(user.getCurrentGoal().getStartLevel());
+        }
+        return primaryLevel;
+    }
+
+    private ModelMap sendMessage(String s) {
+        ModelMap modelMap = new ModelMap();
+        modelMap.put("message", s);
+        return modelMap;
+    }
+
     private void newDay(User user) {
         user.setTime(new Time(9, random.nextInt(step), 0));
         user.setRestDay(random.nextDouble() <= (double)3/7);
@@ -97,10 +141,13 @@ public class GameController {
 
     @RequestMapping("situation/{situationId}/choice/{choiceId}")
     @ResponseBody
-    public void choice(@PathVariable Integer situationId,
-                         @PathVariable Integer choiceId) {
+    public String choice(@PathVariable Integer situationId,
+                         @PathVariable Integer choiceId,
+                         @ModelAttribute("user") User user) {
         Choice choice = commonDao.get(Choice.class, choiceId);
-        User user = commonDao.get(User.class, 1);
+
+        UserLevel prevPrimaryLevel = getPrimaryLevel(user);
+
         UserLevel currentLevel = null;
         for (UserLevel userLevel : user.getLevels()) {
             if (userLevel.getLevel().equals(choice.getLevel())) {
@@ -116,6 +163,7 @@ public class GameController {
 
         currentLevel.setValue(currentLevel.getValue() + 1);
         commonDao.save(currentLevel);
+
         if (user.getChoicesCounter() != null) {
             user.setChoicesCounter(user.getChoicesCounter() + 1);
         } else {
@@ -131,6 +179,31 @@ public class GameController {
         for (ChoiceLog choiceLog : commonDao.getFor(ChoiceLog.class, "user", user.getId())) {
             commonDao.remove(choiceLog);
         }
+
+        // update user object
+        user = commonDao.get(User.class, user.getId());
+        UserLevel primaryLevel = getPrimaryLevel(user);
+
+        if (!prevPrimaryLevel.getId().equals(primaryLevel.getId())) {
+            for (Stage stage : user.getCurrentGoal().getStages()) {
+                if (stage.getLevel().getId().equals(primaryLevel.getLevel().getId())
+                        && stage.getFrom() == primaryLevel.getLevel().getId() < prevPrimaryLevel.getLevel().getId()) {
+                    return stage.getText();
+                }
+            }
+        }
+        return null;
     }
 
+    @RequestMapping("change-goal")
+    public void changeGoal(@RequestParam("userId") Integer userId, @RequestParam("goalId") Integer goalId) {
+        User user = commonDao.get(User.class, userId);
+        user.setCurrentGoal(commonDao.get(Goal.class, goalId));
+        commonDao.save(user);
+    }
+
+    @ModelAttribute("user")
+    public User getUser(){
+        return commonDao.get(User.class, 1);
+    }
 }

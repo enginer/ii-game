@@ -81,6 +81,15 @@ public class ValueObjectUtils {
             return result;
         }
 
+        if (entity instanceof Object[]) {
+            Object[] array = (Object[]) entity;
+            Object[] result = new Object[array.length];
+            for (int i=0; i<array.length; i++) {
+                result[i] = getModelMap(array[i], type, avoidTableAdmin, keepProperties);
+            }
+            return result;
+        }
+
         if (entity.getClass().equals(ModelMap.class)) {
             return entity;
         }

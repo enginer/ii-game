@@ -13,7 +13,7 @@
         })
     }
     function loadSituations() {
-        $("#grid").kendoGrid({
+        $("#situations-grid").kendoGrid({
             dataSource: {
                 transport: {
                     read: "api/admin/all-situations"
@@ -44,7 +44,7 @@
     };
 
     game.newSituation = function(e) {
-        var grid = $("#grid").data("kendoGrid");
+        var grid = $("#situations-grid").data("kendoGrid");
         var item = grid.dataSource.add({text: "New...", category: categories[0], choices: []});
         showSituation(item);
         return false;
@@ -79,7 +79,7 @@
             delete o.levels;
             $.post("api/admin/save-situation", o, function(id){
                 noty({text: "Сохранено", type: 'alert', layout: 'topCenter', timeout: 1000});
-                var grid = $("#grid").data("kendoGrid");
+                var grid = $("#situations-grid").data("kendoGrid");
                 grid.dataSource.read();
 //                loadAddData(id)
             })

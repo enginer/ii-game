@@ -1,0 +1,60 @@
+<div id="goals-grid"></div>
+<div id="goal" style="padding-left: 520px;">
+   <button data-bind="click: save">Сохранить</button>
+    <br>
+    Начинается с уровня <input data-role="dropdownlist"
+                               style="width: 60px"
+                               data-text-field="name"
+                               data-value-field="id"
+                               data-bind="source: setLevels, value: startLevel"/>
+    Заканчивается уровнем <input data-role="dropdownlist"
+                               style="width: 60px"
+                               data-text-field="name"
+                               data-value-field="id"
+                               data-bind="source: setLevels, value: finishLevel"/>
+    <br>
+    Максимальное количество выборов <input data-role="numerictextbox" data-bind="value: maxChoices"/>
+    <br>
+    Название Цели:
+    <br>
+    <input type="text" data-bind="value: name"></textarea>
+    <br>
+    <button class="grey" data-bind="click: addStage">Добавить Стадию</button>
+    <br>
+    <table data-bind="source: stages" data-template="stage-row">
+        <thead>
+        <th>Уровень</th>
+        <th>Текст</th>
+        <th width="100px">Переход с уровня (деплиативный выбор)</th>
+        </thead>
+    </table>
+    <script id="stage-row" type="text/x-kendo-template">
+        <tr>
+            <td>
+                <input data-role="dropdownlist"
+                       style="width: 60px"
+                       data-text-field="name"
+                       data-value-field="id"
+                       data-bind="source: setLevels, value: level"/>
+            </td>
+            <td>
+                <textarea rows="3" cols="35" data-bind="value: text"></textarea>
+            </td>
+            <td>
+                <input type="checkbox" data-bind="checked: from"/>
+            </td>
+            <td><button class="grey" data-bind="click: removeStage">Удалить</button></td>
+        </tr>
+    </script>
+    <button data-bind="click: save">Сохранить</button>
+</div>
+<style type="text/css">
+    #goals-grid {
+        width: 500px;
+        float: left;
+        position: fixed
+    }
+    #goals-grid td {
+        cursor: pointer;
+    }
+</style>

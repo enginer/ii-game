@@ -6,6 +6,8 @@ import javax.persistence.*;
 import java.sql.Time;
 import java.util.List;
 
+import static javax.persistence.FetchType.EAGER;
+
 @Entity
 @Data
 public class User {
@@ -16,7 +18,9 @@ public class User {
     private Boolean restDay;
     private Integer availableChoices;
     private Integer choicesCounter;
+    @ManyToOne
+    private Goal currentGoal;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", fetch = EAGER)
     private List<UserLevel> levels;
 }

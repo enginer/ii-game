@@ -6,7 +6,7 @@ import javax.persistence.*;
 
 @Entity
 @Data
-public class Choice {
+public class Choice implements Comparable<Choice> {
     @Id
     @GeneratedValue
     private Integer id;
@@ -20,4 +20,9 @@ public class Choice {
 
     @ManyToOne
     private Situation situation;
+
+    @Override
+    public int compareTo(Choice o) {
+        return getLevel().getId().compareTo(o.getLevel().getId());
+    }
 }
