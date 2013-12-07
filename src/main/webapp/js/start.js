@@ -98,6 +98,9 @@ $(document).ready(function() {
             case "admin-goals":
                 loadAdminGoals();
                 break;
+            default:
+                loadGame();
+                break;
         }
     }).listen('hash');
 });
