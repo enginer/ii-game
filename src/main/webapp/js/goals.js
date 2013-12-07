@@ -54,10 +54,15 @@
         r.setLevels = function(){return levels};
         r.save = function(e) {
             var o = e.data.toJSON();
-            $.post("api/admin/goal/save", o, function(id){
+            $.post("api/admin/goal/save", o, function(goal){
+                window.location.reload();
+                /*
                 noty({text: "Сохранено", type: 'alert', layout: 'topCenter', timeout: 1000});
                 var grid = $("#goals-grid").data("kendoGrid");
                 grid.dataSource.read();
+                showGoal(goal);
+//                kendo.bind($('#goal'), goal);
+*/
             })
         };
 
@@ -66,11 +71,11 @@
             if (index > -1) {
                 e.data.parent().splice(index, 1);
             }
-            kendo.bind($('#goal'), e.data);
+//            showGoal(e.data);
         }
         r.addStage = function(e) {
             e.data.stages.unshift(kendo.observable({levels: levels, text: "", from: false}));
-            kendo.bind($('#goal'), e.data);
+//            showGoal(e.data);
         };
         kendo.bind($('#goal'), r);
     }

@@ -35,17 +35,22 @@ public class GoalsController {
 
     @RequestMapping(value = "save", method = POST)
     @ResponseBody
-    public Integer saveSituation(@RequestParam("name") String goalName,
-                                 @RequestParam("startLevel[id]") Integer startLevelId,
-                                 @RequestParam("finishLevel[id]") Integer finishLevelId,
-                                 @RequestParam("maxChoices") Integer maxChoices,
-                                 @RequestParam(value = "id", required = false) Integer goalId,
-                                 HttpServletRequest request) {
+    public Object saveSituation(@RequestParam("name") String goalName,
+                                @RequestParam("startLevel[id]") Integer startLevelId,
+                                @RequestParam("finishLevel[id]") Integer finishLevelId,
+                                @RequestParam("maxChoices") Integer maxChoices,
+                                @RequestParam(value = "id", required = false) Integer goalId,
+                                HttpServletRequest request) {
         HashMap<String, String[]> map = (HashMap<String, String[]>) request.getParameterMap();
 
         Goal goal;
         if (goalId != null) {
             goal = commonDao.get(Goal.class, goalId);
+            for (Stage stage : goal.getStages()) {
+                stage.setGoal(null);
+                commonDao.save(stage);
+            }
+//            goal = commonDao.get(Goal.class, goalId);
             Assert.notNull(goal);
         } else {
             goal = new Goal();
@@ -88,8 +93,9 @@ public class GoalsController {
                 }
             }
         }
+
         goal.setStages(new ArrayList<Stage>(stages.values()));
         commonDao.save(goal);
-        return goal.getId();
+        return getModelMap(goal, "stages.level", "startLevel", "finishLevel");
     }
 }
