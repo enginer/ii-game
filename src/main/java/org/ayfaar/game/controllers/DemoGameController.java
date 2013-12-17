@@ -7,18 +7,19 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Time;
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Random;
 
 import static java.util.Collections.sort;
 import static org.ayfaar.game.utils.ValueObjectUtils.getModelMap;
 
 @Controller
-@RequestMapping("api")
-public class GameController {
+@RequestMapping("api/demo")
+public class DemoGameController {
     @Autowired CommonDao commonDao;
     @Autowired NextSituationGenerator nextSituationGenerator;
     private Random random = new Random();
@@ -30,18 +31,10 @@ public class GameController {
         return getModelMap(commonDao.getAll(Goal.class));
     }
 
-    @RequestMapping("user/{userId}/status")
-    @ResponseBody
-    public Object userStatus(@PathVariable Integer userId) {
-        User user = commonDao.get(User.class, userId);
-        Assert.notNull(user, "Игрок не найден");
-        return getModelMap(user, "levels.level", "currentGoal");
-    }
-
-    @RequestMapping("situation/next")
+    @RequestMapping("next")
     @ResponseBody
     public Object next() {
-//        ModelMap map = new ModelMap();
+        ModelMap map = new ModelMap();
 
         User user = commonDao.get(User.class, 1);
 
@@ -65,9 +58,11 @@ public class GameController {
 
         sort(user.getLevels());
         commonDao.save(user);
-//        map.put("user", getModelMap(user, "levels.level", "currentGoal"));
+        map.put("user", getModelMap(user, "levels.level", "currentGoal"));
+
 
         UserLevel primaryLevel = getPrimaryLevel(user);
+
 
         if (user.getChoicesCounter() > user.getCurrentGoal().getMaxChoices()) {
             // Stage end
@@ -81,6 +76,7 @@ public class GameController {
 
         Situation situation = nextSituationGenerator.getNext(user.getTime(), user.getRestDay());
         Choice[] choices = new Choice[3];
+
 
         sort(situation.getChoices());
         Iterator<Choice> iterator = situation.getChoices().iterator();
@@ -100,22 +96,24 @@ public class GameController {
             }
         }
 
-        ModelMap situationModelMap = (ModelMap) getModelMap(situation, "category");
-
-        List<Choice> choiceList = new ArrayList<Choice>();
-
-        for (Choice choice : choices) {
-            if (choice != null) {
-                choiceList.add(choice);
+        /*for (Choice choice : situation.getChoices()) {
+            Integer primaryUserLevelId = primaryLevel.getLevel().getId();
+            Integer choiceLevelId = choice.getLevel().getId();
+            if (choiceLevelId.equals(primaryUserLevelId)
+                    || choiceLevelId.equals(primaryUserLevelId - 1)
+                    || choiceLevelId.equals(primaryUserLevelId + 1)
+                    ) {
+                choices.add(choice);
             }
-        }
+        }*/
 
-        situationModelMap.put("choices", getModelMap(choiceList, "level"));
+        ModelMap situationModelMap = (ModelMap) getModelMap(situation, "category");
+        situationModelMap.put("choices", getModelMap(choices, "level"));
 
-//        map.put("situation", situationModelMap);
-        situationModelMap.put("time", user.getTime());
+        map.put("situation", situationModelMap);
 
-        return situationModelMap;
+
+        return map;
     }
 
     private UserLevel getPrimaryLevel(User user) {
@@ -143,11 +141,11 @@ public class GameController {
         user.setRestDay(random.nextDouble() <= (double)3/7);
     }
 
-    @RequestMapping("make-choice/{choiceId}")
+    @RequestMapping("situation/{situationId}/choice/{choiceId}")
     @ResponseBody
-    public String choice(@PathVariable Integer choiceId,
+    public String choice(@PathVariable Integer situationId,
+                         @PathVariable Integer choiceId,
                          @ModelAttribute("user") User user) {
-
         Choice choice = commonDao.get(Choice.class, choiceId);
 
         UserLevel prevPrimaryLevel = getPrimaryLevel(user);

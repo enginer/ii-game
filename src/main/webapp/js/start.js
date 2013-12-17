@@ -53,7 +53,7 @@ $(document).ready(function() {
     }
 
     function nextSituation() {
-        $.get("api/game/next", function(r) {
+        $.get("api/demo/next", function(r) {
             if (r.message) {
                 alert(r.message);
                 return;
@@ -64,7 +64,7 @@ $(document).ready(function() {
                 $.get("api/admin/reset-user", nextSituation)
             };
             r.onGoalChanged = function(e) {
-                $.get("api/game/change-goal", {
+                $.get("api/demo/change-goal", {
                     userId: e.data.user.id, goalId: e.data.user.currentGoal.id}, function(){
                     noty({text: "Изменено", type: 'alert', layout: 'topCenter', timeout: 1000});
                 })
@@ -75,7 +75,7 @@ $(document).ready(function() {
     }
 
     game.choose = function(choiceId) {
-        $.get("api/game/situation/"+ situationId +"/choice/"+ choiceId, function(r) {
+        $.get("api/demo/situation/"+ situationId +"/choice/"+ choiceId, function(r) {
             if (r) {
                 alert(r);
             }
