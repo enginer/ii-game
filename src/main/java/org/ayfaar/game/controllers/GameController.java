@@ -2,6 +2,7 @@ package org.ayfaar.game.controllers;
 
 import org.ayfaar.game.dao.CommonDao;
 import org.ayfaar.game.model.*;
+import org.ayfaar.game.spring.Model;
 import org.ayfaar.game.utils.NextSituationGenerator;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import static org.ayfaar.game.utils.ValueObjectUtils.getModelMap;
 public class GameController {
     @Autowired CommonDao commonDao;
     @Autowired NextSituationGenerator nextSituationGenerator;
+
     private Random random = new Random();
     private static final int step = 250;
 
@@ -36,6 +38,12 @@ public class GameController {
         User user = commonDao.get(User.class, userId);
         Assert.notNull(user, "Игрок не найден");
         return getModelMap(user, "levels.level", "currentGoal");
+    }
+
+    @RequestMapping("situation/categories")
+    @Model
+    public Object categories() {
+        return commonDao.getAll(Category.class);
     }
 
     @RequestMapping("situation/next")

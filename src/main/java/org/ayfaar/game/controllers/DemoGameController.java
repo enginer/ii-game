@@ -112,7 +112,6 @@ public class DemoGameController {
 
         map.put("situation", situationModelMap);
 
-
         return map;
     }
 
