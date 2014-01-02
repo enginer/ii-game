@@ -22,7 +22,7 @@ public class ValueObjectUtils {
      * @throws Exception
      */
     @Deprecated
-    public static Collection<ModelMap> convertToPlainObjects(Collection<?> list) throws Exception {
+    public static Collection<ModelMap> convertToPlainObjects(Collection<?> list) {
         return (Collection<ModelMap>) getModelMap(list);
     }
 

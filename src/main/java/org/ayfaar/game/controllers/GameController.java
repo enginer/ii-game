@@ -2,7 +2,6 @@ package org.ayfaar.game.controllers;
 
 import org.ayfaar.game.dao.CommonDao;
 import org.ayfaar.game.model.*;
-import org.ayfaar.game.spring.Model;
 import org.ayfaar.game.utils.NextSituationGenerator;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,7 @@ import java.sql.Time;
 import java.util.*;
 
 import static java.util.Collections.sort;
+import static org.ayfaar.game.utils.ValueObjectUtils.convertToPlainObjects;
 import static org.ayfaar.game.utils.ValueObjectUtils.getModelMap;
 
 @Controller
@@ -41,16 +41,15 @@ public class GameController {
     }
 
     @RequestMapping("situation/categories")
-    @Model
+    @ResponseBody
     public Object categories() {
-        return commonDao.getAll(Category.class);
+        Collection<ModelMap> categories = convertToPlainObjects(commonDao.getAll(Category.class));
+        return categories;
     }
 
     @RequestMapping("situation/next")
     @ResponseBody
     public Object next() {
-//        ModelMap map = new ModelMap();
-
         User user = commonDao.get(User.class, 1);
 
         if (user.getCurrentGoal() == null) {
