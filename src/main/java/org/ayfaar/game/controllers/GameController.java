@@ -4,6 +4,7 @@ import org.ayfaar.game.dao.CommonDao;
 import org.ayfaar.game.model.*;
 import org.ayfaar.game.utils.NextSituationGenerator;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -49,7 +50,7 @@ public class GameController {
 
     @RequestMapping("situation/next")
     @ResponseBody
-    public Object next() {
+    public Object next(@RequestParam String time) {
         User user = commonDao.get(User.class, 1);
 
         if (user.getCurrentGoal() == null) {
@@ -60,15 +61,16 @@ public class GameController {
             newDay(user);
         }
 
-        DateTime dateTime = new DateTime(user.getTime());
-        dateTime = dateTime.plusMinutes(10 + random.nextInt(step));
+        DateTime dateTime = DateTime.parse(time, DateTimeFormat.forPattern("H:m"));
+        user.setTime(new Time(dateTime.toDate().getTime()));
+        /*dateTime = dateTime.plusMinutes(10 + random.nextInt(step));
 
         if (dateTime.getHourOfDay() < 8) {
             newDay(user);
             dateTime = new DateTime(user.getTime());
         } else {
             user.setTime(new Time(dateTime.toDate().getTime()));
-        }
+        }*/
 
         sort(user.getLevels());
         commonDao.save(user);
